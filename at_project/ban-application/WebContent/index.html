@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BAN Application</title>
+</head>
+
+<body bgcolor="D6D6D6">
+    <center>
+        <header>
+            <h1>Bicing free slots/Air quality notifier</h1>
+        </header>
+        <div id="buttons">
+            <button type="button" onclick="list_stations()">List Barcelona's Bicing Stations</button>
+            <button type="button" onclick="list_clients()">List all subscribed clients</button>
+        </div>
+        <div>
+            </center>
+                Do you want to subscribe to certain stations and get notifications? Sign up! <br>
+            <form id="subs">
+                <label for="phone">Phone number:</label><input id="phone" type="text" name="phone">
+                <br>
+                <label for="telegramToken">Telegram Token:</label><input id="telegramToken" type="text" name="telegramToken">
+                <br>
+                <label for="stationsIds">List of stations:</label><input id="stationsIds" type="text" name="stationsIds">
+            </form>
+            <button type="button" onclick="subscribe_client()">Subscribe now</button>
+        </div>
+        <div id="notifyStt">
+            Introduce a phone number in order to receive via telegram group chat the stations this phone is subscribed to
+            <form id="phone_client_form">
+                <label for="phone_client">Phone Number:</label><input id="phone_client" type="text">
+            </form>
+            <button type="button" onclick="notifystt()">Notify Me</button>
+        </div>
+        <div>
+            
+            Introduce an IP and receive via telegram group chat the Air Quality of its location
+            <form id="aiqremote">
+                <label for="airquaIP">IP:</label><input id="airquaIP" type="text">
+            </form>
+            <button id="airqua" type="button" onclick="airquality()">Air Quality IP Location </button>
+        </div>
+        <div>
+            <h3>Responses</h3>
+        </div>
+        <hr>
+        <div id="sectionId">
+        </div>
+        <hr>
+        <script>
+            function list_stations() {
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    } else if (xmlhttp.status == 404) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    }
+                };
+                xmlhttp.open("GET", "ban/bicing/stations/list", true);
+                xmlhttp.send();
+            }
+
+            function list_clients() {
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    } else if (xmlhttp.status == 225) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    }
+                };
+                xmlhttp.open("GET", "ban/clients/data/list", true);
+                xmlhttp.send();
+            }
+
+            function subscribe_client() {
+                var params = {
+                    "phone": document.getElementById("phone").value,
+                    "telegramToken": document.getElementById("telegramToken").value,
+                    "stationsIds": document.getElementById("stationsIds").value.replace(/\s/g, "").split(",")
+                };
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    } else if (xmlhttp.status == 210) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    } else if (xmlhttp.status == 450) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    }
+                };
+                xmlhttp.open("POST", "ban/clients/data/add", true);
+                xmlhttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                xmlhttp.send(JSON.stringify(params));
+                document.getElementById("phone").value = "";
+                document.getElementById("telegramToken").value = "";
+                document.getElementById("stationsIds").value = "";
+
+            }
+
+            function notifystt() {
+                var phone = {"phone":document.getElementById("phone_client").value};
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.status == 210) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    } else if (xmlhttp.status == 450) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    }
+                };
+                xmlhttp.open("POST", "ban/telegram/bot/notifyStt", true)
+                xmlhttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                xmlhttp.send(JSON.stringify(phone));
+                document.getElementById("phone_client").value = "";
+            }
+
+
+            function airquality() {
+                var ip = {"ip":document.getElementById("airquaIP").value};
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.status == 210) {
+                        document.getElementById("sectionId").innerHTML = xmlhttp.responseText;
+                    }
+                };
+                xmlhttp.open("POST", "ban/telegram/bot/airquality", true);
+                xmlhttp.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+                xmlhttp.send(JSON.stringify(ip));
+                document.getElementById("airquaIP").value = "";
+            }
+
+            window.onload = function() {
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.open("POST", "ban/telegram/bot/wakeup", true);
+                xmlhttp.send();
+            }
+
+        </script>
+
+        <style>
+            input, label{
+                float: left;
+            }
+            label {
+                width: 120px;
+                clear: left;
+                margin-left: 50px;
+            }
+            #buttons{
+                margin-bottom: 25px;
+            }
+
+            #subs {
+                margin-bottom: 25px;
+            }
+
+            #notifyStt {
+                margin-top: 25px;
+                margin-bottom: 25px;
+            }
+
+            #phone_client_form {
+                margin-bottom: 25px;
+            }
+
+
+            #airqua {
+                margin-left: 15px;
+            }
+        </style>
+</body>
+<footer>
+    <small>
+        Albert Baiges & Alex Burgo
+    </small>
+</footer>
+</html>
